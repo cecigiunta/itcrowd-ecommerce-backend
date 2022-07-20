@@ -1,54 +1,61 @@
+const productsModel = require('../models/productsModel');
+
 module.exports = {
 
-    getAll: function (req, res, next) {
-        const products = [{
-            id: 1,
-            name: 'Producto 1',
-            description: 'First description',
-            price: 100,
-            image_url: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'
-        },
-        {
-            id: 2,
-            name: 'Producto 2',
-            description: 'Second description',
-            price: 100,
-            image_url: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'
-        },
-    ];
-        console.log(res.json(products));
-        res.json(products);
-    },
-
-    getById: function (req, res, next) {
-        console.log(req.params);
-        const producto = {
-            id: 1,
-            nombre: 'Producto 1',
-            precio: 100
+    getAll: async function (req, res, next) {
+        try{
+            const documents = await productsModel.find() 
+            res.status(200).json(documents);
+        } catch(error){
+            next(error);
         }
-        res.json(producto)
     },
 
-    create: function (req, res, next) {
-        console.log(req.body);
-        res.json(req.body)
+    getById: async function (req, res, next) {
+        try{
+            const documents = await productsModel.findById(req.params.id) 
+            res.status(200).json(documents);
+        }catch(error){
+            next(error);
+        }
     },
-    
-    update: function (req, res, next) {
+
+    create: async function (req, res, next) {
+        try {
+            const product = new productsModel({
+                name: req.body.name,
+                description: req.body.description,
+                price: req.body.price,
+                image_url: req.body.image_url
+            });
+            const document = await product.save()  //guarda en BBDD
+            res.json(document)
+        } catch (error) {
+            console.log(error);
+            res.json({ message: 'Error al crear el producto' })
+        }        
+    },
+
+    update: async function (req, res, next) {
         console.log(req.params.id, req.body);
-        res.json(req.body)
+        try {
+            const document = await productsModel.updateOne({_id: req.params.id}, req.body)
+            res.json(document)
+        } catch (error) {
+            next(error)
+            console.log(error);
+        }
+        
     },
 
-    delete: function (req, res, next) {
+    delete: async function (req, res, next) {
         console.log(req.params);
-        const producto = {
-            id: 1,
-            nombre: 'Producto 1',
-            precio: 100
+        try {
+            const document = await productsModel.deleteOne({_id: req.params.id})
+            res.json(document)
+        } catch (error) {
+            next(error)
+            console.log(error);
         }
-        res.json(producto)
     }
-
-
 }
